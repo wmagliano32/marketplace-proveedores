@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* base minimal (sin @apply) */
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+/* Hide scrollbar (mobile chips) */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
