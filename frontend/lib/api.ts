@@ -1,9 +1,13 @@
-const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
+const API_PUBLIC = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
+const API_INTERNAL = process.env.API_INTERNAL_BASE_URL ?? API_PUBLIC;
+
+// En server (SSR/build) usamos internal; en browser usamos public
+const API = typeof window === "undefined" ? API_INTERNAL : API_PUBLIC;
 
 type FetchOpts = { revalidate?: number };
 
 async function getJSON<T>(path: string, opts: FetchOpts = {}): Promise<T> {
-  const revalidate = opts.revalidate ?? 300; // default 5 min
+  const revalidate = opts.revalidate ?? 300;
   const res = await fetch(`${API}${path}`, { next: { revalidate } });
   if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
   return res.json() as Promise<T>;
@@ -41,7 +45,6 @@ export type ProviderListItem = {
   province: string;
   city: string;
 
-  // ✅ NUEVO: plan
   plan_tier?: number;
   plan_code?: string;
 

@@ -1,12 +1,12 @@
 "use client";
 
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
 import Container from "@/components/Container";
 import { apiFetch } from "@/lib/apiClient";
 import { setTokens, clearTokens } from "@/lib/session";
 
-export default function BackofficeLoginPage() {
+function Inner() {
   const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get("next") || "/backoffice/reviews?status=PENDING";
@@ -75,5 +75,23 @@ export default function BackofficeLoginPage() {
         </div>
       </Container>
     </main>
+  );
+}
+
+export default function BackofficeLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main>
+          <Container>
+            <div className="mx-auto max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              Cargando…
+            </div>
+          </Container>
+        </main>
+      }
+    >
+      <Inner />
+    </Suspense>
   );
 }

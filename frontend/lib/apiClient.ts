@@ -18,7 +18,7 @@ function formatDrfError(data: any, status: number) {
   return `HTTP ${status}`;
 }
 
-export async function apiFetch<T>(
+export async function apiFetch<T = any>(
   path: string,
   opts: { method?: string; body?: any; auth?: boolean } = {}
 ): Promise<T> {

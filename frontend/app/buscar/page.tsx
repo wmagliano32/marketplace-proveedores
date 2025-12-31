@@ -4,7 +4,7 @@ import ProviderCard from "@/components/ProviderCard";
 import ProviderFiltersBar from "@/components/ProviderFiltersBar";
 import AdSlot from "@/components/AdSlot";
 
-const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
+const API = process.env.API_INTERNAL_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
 
 async function fetchJSON<T>(path: string): Promise<T> {
   const res = await fetch(`${API}${path}`, { next: { revalidate: 120 } });

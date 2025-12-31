@@ -56,7 +56,7 @@ export default function ProviderPanelPage() {
       const [p, allSub, mySubs] = await Promise.all([
         apiFetch("/api/provider/profile/", { auth: true }),
         apiFetch<Subcategory[]>("/api/public/subcategories/", { auth: false }),
-        apiFetch("/api/provider/subscriptions/", { auth: true }),
+        apiFetch<any[]>("/api/provider/subscriptions/", { auth: true }),
       ]);
 
       setProfile(p);

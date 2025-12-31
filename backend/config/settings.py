@@ -174,3 +174,56 @@ else:
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+# --- Static & Media (producción) ---
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+
+
+
+# --- DB via .env (marketplace) ---
+import os as _os
+from dotenv import load_dotenv as _load_dotenv
+
+_load_dotenv(BASE_DIR / ".env")
+
+if _os.getenv("DB_NAME"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": _os.getenv("DB_NAME"),
+            "USER": _os.getenv("DB_USER", ""),
+            "PASSWORD": _os.getenv("DB_PASSWORD", ""),
+            "HOST": _os.getenv("DB_HOST", "127.0.0.1"),
+            "PORT": _os.getenv("DB_PORT", "5432"),
+        }
+    }
+
+
+
+
+# --- Env overrides (hosts/cors/csrf) ---
+import os as _os
+
+DEBUG = _os.getenv("DEBUG", "0").lower() in ("1", "true", "yes", "on")
+
+if _os.getenv("SECRET_KEY"):
+    SECRET_KEY = _os.getenv("SECRET_KEY")
+
+if _os.getenv("ALLOWED_HOSTS"):
+    ALLOWED_HOSTS = [h.strip() for h in _os.getenv("ALLOWED_HOSTS", "").split(",") if h.strip()]
+
+if _os.getenv("CSRF_TRUSTED_ORIGINS"):
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+
+if _os.getenv("CORS_ALLOWED_ORIGINS"):
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in _os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if o.strip()]
+
+# para HTTPS detrás de nginx/certbot
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+

@@ -1,12 +1,12 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Container from "@/components/Container";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
 
-export default function SolicitudAnuncioPage() {
+function SolicitudInner() {
   const sp = useSearchParams();
   const initialPlacement = (sp.get("placement") || "HEADER").toUpperCase();
 
@@ -77,6 +77,9 @@ export default function SolicitudAnuncioPage() {
       if (!res.ok) throw new Error(data?.detail || `HTTP ${res.status}`);
 
       setOk(`¡Listo! Recibimos tu solicitud (#${data.request_id}). Te contactamos para activar el anuncio.`);
+      setTitle("");
+      setSubtitle("");
+      setNotes("");
     } catch (e: any) {
       setErr(e?.message || "Error enviando solicitud");
     } finally {
@@ -93,13 +96,25 @@ export default function SolicitudAnuncioPage() {
             Completá los datos y subí tu banner/logo. Luego lo aprobamos y coordinamos el pago.
           </p>
 
-          {ok && <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{ok}</div>}
-          {err && <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{err}</div>}
+          {ok && (
+            <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+              {ok}
+            </div>
+          )}
+          {err && (
+            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+              {err}
+            </div>
+          )}
 
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="text-xs text-slate-500">Ubicación</label>
-              <select className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={placement} onChange={(e) => setPlacement(e.target.value)}>
+              <select
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                value={placement}
+                onChange={(e) => setPlacement(e.target.value)}
+              >
                 <option value="HEADER">Header</option>
                 <option value="LEFT_RAIL">Lateral izquierdo</option>
                 <option value="RIGHT_RAIL">Lateral derecho</option>
@@ -109,7 +124,11 @@ export default function SolicitudAnuncioPage() {
 
             <div>
               <label className="text-xs text-slate-500">Duración</label>
-              <select className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={durationMonths} onChange={(e) => setDurationMonths(Number(e.target.value))}>
+              <select
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                value={durationMonths}
+                onChange={(e) => setDurationMonths(Number(e.target.value))}
+              >
                 <option value={1}>1 mes</option>
                 <option value={3}>3 meses</option>
                 <option value={6}>6 meses</option>
@@ -119,27 +138,48 @@ export default function SolicitudAnuncioPage() {
 
             <div>
               <label className="text-xs text-slate-500">Empresa / Marca</label>
-              <input className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={sponsorName} onChange={(e) => setSponsorName(e.target.value)} />
+              <input
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                value={sponsorName}
+                onChange={(e) => setSponsorName(e.target.value)}
+              />
             </div>
 
             <div>
               <label className="text-xs text-slate-500">URL destino</label>
-              <input className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://..." />
+              <input
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://..."
+              />
             </div>
 
             <div>
               <label className="text-xs text-slate-500">Nombre de contacto</label>
-              <input className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={contactName} onChange={(e) => setContactName(e.target.value)} />
+              <input
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+              />
             </div>
 
             <div>
               <label className="text-xs text-slate-500">Email</label>
-              <input className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
+              <input
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+              />
             </div>
 
             <div>
               <label className="text-xs text-slate-500">Teléfono (opcional)</label>
-              <input className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
+              <input
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
+              />
             </div>
           </div>
 
@@ -150,14 +190,22 @@ export default function SolicitudAnuncioPage() {
               <button
                 type="button"
                 onClick={() => setCreativeType("IMAGE")}
-                className={`rounded-xl border px-4 py-2 text-sm ${creativeType === "IMAGE" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white hover:bg-slate-50"}`}
+                className={`rounded-xl border px-4 py-2 text-sm ${
+                  creativeType === "IMAGE"
+                    ? "border-slate-900 bg-slate-900 text-white"
+                    : "border-slate-200 bg-white hover:bg-slate-50"
+                }`}
               >
                 Banner imagen
               </button>
               <button
                 type="button"
                 onClick={() => setCreativeType("COMPOSED")}
-                className={`rounded-xl border px-4 py-2 text-sm ${creativeType === "COMPOSED" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white hover:bg-slate-50"}`}
+                className={`rounded-xl border px-4 py-2 text-sm ${
+                  creativeType === "COMPOSED"
+                    ? "border-slate-900 bg-slate-900 text-white"
+                    : "border-slate-200 bg-white hover:bg-slate-50"
+                }`}
               >
                 Logo + texto
               </button>
@@ -170,7 +218,7 @@ export default function SolicitudAnuncioPage() {
               </div>
 
               <div>
-                <label className="text-xs text-slate-500">Imagen banner (opcional si usás “Logo + texto”)</label>
+                <label className="text-xs text-slate-500">Imagen banner</label>
                 <input type="file" accept="image/*" className="mt-1 w-full text-sm" onChange={(e) => setImage(e.target.files?.[0] || null)} />
               </div>
             </div>
@@ -213,7 +261,7 @@ export default function SolicitudAnuncioPage() {
             </div>
 
             <div className="mt-3">
-              <label className="text-xs text-slate-500">Texto botón (CTA)</label>
+              <label className="text-xs text-slate-500">CTA</label>
               <input className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={ctaText} onChange={(e) => setCtaText(e.target.value)} />
             </div>
 
@@ -233,5 +281,23 @@ export default function SolicitudAnuncioPage() {
         </div>
       </Container>
     </main>
+  );
+}
+
+export default function SolicitudAnuncioPage() {
+  return (
+    <Suspense
+      fallback={
+        <main>
+          <Container>
+            <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              Cargando…
+            </div>
+          </Container>
+        </main>
+      }
+    >
+      <SolicitudInner />
+    </Suspense>
   );
 }

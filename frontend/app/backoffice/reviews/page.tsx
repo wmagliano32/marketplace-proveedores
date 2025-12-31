@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Container from "@/components/Container";
 import BackofficeNav from "@/components/BackofficeNav";
@@ -25,30 +25,24 @@ type Review = {
 
 const STATUSES = ["PENDING", "PUBLISHED", "HIDDEN"] as const;
 
-export default function BackofficeReviewsPage() {
+function Inner() {
   const router = useRouter();
   const sp = useSearchParams();
   const status = (sp.get("status") || "PENDING").toUpperCase();
+  const activeStatus = STATUSES.includes(status as any) ? (status as any) : "PENDING";
 
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<Review[]>([]);
   const [err, setErr] = useState("");
 
-  const activeStatus = STATUSES.includes(status as any) ? (status as any) : "PENDING";
-
   async function load() {
     setErr("");
     setLoading(true);
     try {
-      const data = await apiFetch<Review[]>(
-        `/api/backoffice/reviews/?status=${encodeURIComponent(activeStatus)}`,
-        { auth: true }
-      );
+      const data = await apiFetch<Review[]>(`/api/backoffice/reviews/?status=${encodeURIComponent(activeStatus)}`, { auth: true });
       setItems(data);
     } catch (e: any) {
-      const msg = e?.message || "Error";
-      setErr(msg);
-
+      setErr(e?.message || "Error");
       clearTokens();
       router.push(`/backoffice/login?next=${encodeURIComponent(`/backoffice/reviews?status=${activeStatus}`)}`);
     } finally {
@@ -76,11 +70,7 @@ export default function BackofficeReviewsPage() {
   async function setReviewStatus(id: number, newStatus: "PUBLISHED" | "HIDDEN" | "PENDING") {
     setErr("");
     try {
-      await apiFetch(`/api/backoffice/reviews/${id}/`, {
-        method: "PATCH",
-        auth: true,
-        body: { status: newStatus },
-      });
+      await apiFetch(`/api/backoffice/reviews/${id}/`, { method: "PATCH", auth: true, body: { status: newStatus } });
       await load();
     } catch (e: any) {
       setErr(e?.message || "Error actualizando");
@@ -118,19 +108,14 @@ export default function BackofficeReviewsPage() {
                 onClick={() => goStatus(s)}
                 className={[
                   "rounded-xl border px-4 py-2 text-sm",
-                  s === activeStatus
-                    ? "border-slate-900 bg-slate-900 text-white"
-                    : "border-slate-200 bg-white hover:bg-slate-50",
+                  s === activeStatus ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white hover:bg-slate-50",
                 ].join(" ")}
               >
                 {s} {s === activeStatus ? `(${counts[s]})` : ""}
               </button>
             ))}
 
-            <button
-              onClick={load}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50"
-            >
+            <button onClick={load} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50">
               Refrescar
             </button>
           </div>
@@ -158,28 +143,21 @@ export default function BackofficeReviewsPage() {
             <div className="p-6 text-sm text-slate-600">No hay reseñas en este estado.</div>
           ) : (
             items.map((r) => {
-              const author =
-                r.reviewer_email_user || r.reviewer_email || r.reviewer_name || (r.source ? r.source : "—");
+              const author = r.reviewer_email_user || r.reviewer_email || r.reviewer_name || (r.source ? r.source : "—");
 
               return (
                 <div key={r.id} className="grid grid-cols-12 gap-2 border-b border-slate-100 px-4 py-3 text-sm">
-                  <div className="col-span-2 text-xs text-slate-600">
-                    {new Date(r.created_at).toLocaleString()}
-                  </div>
-
+                  <div className="col-span-2 text-xs text-slate-600">{new Date(r.created_at).toLocaleString()}</div>
                   <div className="col-span-2">
                     <Link className="underline text-slate-800 hover:text-slate-900" href={`/proveedores/${r.provider_slug}`}>
                       {r.provider_slug}
                     </Link>
                   </div>
-
                   <div className="col-span-1 font-semibold">{r.rating}</div>
-
                   <div className="col-span-4 text-slate-700">
                     {r.comment ? r.comment.slice(0, 160) : <span className="text-slate-400">—</span>}
                     {r.comment && r.comment.length > 160 ? "…" : ""}
                   </div>
-
                   <div className="col-span-2 text-xs text-slate-600 break-words">{author}</div>
 
                   <div className="col-span-1 flex justify-end gap-2">
@@ -222,5 +200,21 @@ export default function BackofficeReviewsPage() {
         </div>
       </Container>
     </main>
+  );
+}
+
+export default function BackofficeReviewsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main>
+          <Container>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">Cargando…</div>
+          </Container>
+        </main>
+      }
+    >
+      <Inner />
+    </Suspense>
   );
 }
